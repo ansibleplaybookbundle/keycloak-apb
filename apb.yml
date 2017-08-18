@@ -1,0 +1,34 @@
+version: 1.0
+name: keycloak-apb
+description: Keycloak - Open Source Identity and Access Management
+bindable: True
+async: optional
+tags: 
+  - mobile-service
+metadata:
+  displayName: Keycloak
+  imageUrl: "https://pbs.twimg.com/profile_images/702119821979344897/oAC05cEB_400x400.png"
+  documentationUrl: "http://www.keycloak.org/documentation.html"
+  providerDisplayName: "Red Hat, Inc."
+  dependencies: ['Postgresql:9.5']
+  serviceName: keycloak
+plans:
+  - name: default
+    description: Deploy keycloak
+    free: True
+    metadata: {}
+    parameters: 
+    - name: ADMIN_NAME
+      required: True
+      default: admin
+      type: string
+      title: Keycloak admin username
+    - name: ADMIN_PASSWORD
+      required: True
+      default: admin
+      type: string
+      title: Keycloak admin password
+    bind_parameters:
+    - name: service
+      title: The service the client is for
+      type: string

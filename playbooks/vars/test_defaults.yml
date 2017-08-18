@@ -1,0 +1,3 @@
+ADMIN_NAME: "admin"
+ADMIN_PASSWORD: "admin"
+POSTGRESQL_EPHEMERAL: true

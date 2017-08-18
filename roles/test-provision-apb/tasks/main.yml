@@ -1,0 +1,27 @@
+---
+
+- name: Check that the keycloak webpage is accessible
+  uri:
+    url: "{{ keycloak_protocol }}://{{ keycloak_route.stdout }}/auth/"
+    return_content: yes
+    validate_certs: no
+  register: webpage
+  retries: 10
+  delay: 20
+  failed_when:
+    - webpage.status == 403
+    - '"Welcome to Keycloak" not in webpage.content'
+  until: '"Welcome to Keycloak" in webpage.content'
+
+- name: Check that the metrics endpoint works
+  uri:
+    url: "{{ keycloak_protocol }}://{{ keycloak_route.stdout }}/auth/realms/master/metrics"
+    return_content: yes
+    validate_certs: no
+  register: webpage
+  retries: 10
+  delay: 20
+  failed_when:
+    - webpage.status == 403
+    - '"kc_logged_in_users" not in webpage.content'
+  until: '"kc_logged_in_users" in webpage.content'
