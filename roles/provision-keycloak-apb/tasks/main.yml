@@ -1,17 +1,4 @@
-- include_tasks: label-serviceinstance.yml
-
 - include_tasks: provision-postgres.yml
-  when: POSTGRESQL_EPHEMERAL is undefined
-
-- include_tasks: provision-postgres-ephemeral.yml
-  when: POSTGRESQL_EPHEMERAL is defined
-
+  when: _apb_plan_id == 'persistent'
+  
 - include_tasks: provision-keycloak.yml
-
-- include_role:
-    name: oc-patch-file-to-configmap
-  vars:
-    file_contents: "{{ dashboard_file_contents }}"
-    filename: "{{ dashboard_filename }}"
-    configmap: "{{ dashboards_configmap }}"
-    namespace: "{{ namespace }}"

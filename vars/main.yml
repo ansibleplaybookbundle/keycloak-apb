@@ -1,8 +1,5 @@
 ---
 
-# http or https.
-keycloak_protocol: https
-
 # Global constants
 keycloak_service_name: keycloak
 postgres_service_name: postgres

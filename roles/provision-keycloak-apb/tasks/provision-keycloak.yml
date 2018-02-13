@@ -1,14 +1,5 @@
-- name: create persistent volume claim to copy the SPI provider
-  k8s_v1_persistent_volume_claim:
-    name: '{{ keycloak_pv_claim_name }}'
-    state: present
-    namespace: '{{ namespace }}'
-    access_modes: [ReadWriteMany]
-    spec_resources_requests:
-      storage: 10M
-  register: create_volume_claim
-
-- name: create deployment config
+- name: create Keycloak deployment config
+  when: _apb_plan_id == 'ephemeral'
   openshift_v1_deployment_config:
     name: keycloak
     namespace: '{{ namespace }}'
@@ -16,7 +7,6 @@
       app: keycloak
       service: keycloak
       name: keycloak
-      mobile: enabled
     replicas: 1
     selector:
       app: keycloak
@@ -24,10 +14,38 @@
     spec_template_metadata_labels:
       app: keycloak
       service: keycloak
-    volumes:
-    - name: keycloak-metrics
-      persistent_volume_claim:
-        claim_name: keycloak-metrics
+    containers:
+    - env:
+      - name: KEYCLOAK_USER
+        value: '{{ ADMIN_NAME }}'
+      - name: KEYCLOAK_PASSWORD
+        value: '{{ ADMIN_PASSWORD }}'
+      - name: PROXY_ADDRESS_FORWARDING
+        value: 'true'
+      - name: DB_VENDOR
+        value: H2
+      image: 'docker.io/jboss/keycloak-openshift:{{ keycloak_image_tag }}'
+      name: keycloak
+      ports:
+      - container_port: 8080
+        protocol: TCP
+
+- name: create Keycloak deployment config
+  when: _apb_plan_id == 'persistent'
+  openshift_v1_deployment_config:
+    name: keycloak
+    namespace: '{{ namespace }}'
+    labels:
+      app: keycloak
+      service: keycloak
+      name: keycloak
+    replicas: 1
+    selector:
+      app: keycloak
+      service: keycloak
+    spec_template_metadata_labels:
+      app: keycloak
+      service: keycloak
     containers:
     - env:
       - name: KEYCLOAK_USER
@@ -56,22 +74,14 @@
       ports:
       - container_port: 8080
         protocol: TCP
-      volume_mounts:
-      - mount_path: /opt/jboss/keycloak/providers/
-        name: keycloak-metrics
-        sub_path: providers/
 
 - name: create keycloak service
   k8s_v1_service:
     name: '{{ keycloak_service_name }}'
     namespace: '{{ namespace }}'
-    annotations:
-      # this only works with the custom JAR (SPI impl) https://github.com/aerogear/keycloak-metrics-spi
-      org.aerogear.metrics/plain_endpoint:  /auth/realms/master/metrics
     labels:
       app: keycloak
       service: keycloak
-      mobile: enabled
     selector:
       app: keycloak
       service: keycloak
@@ -79,18 +89,10 @@
     - name: web
       port: 80
       target_port: 8080
+  register: keycloak_service_raw
 
-- name: create keycloak http route
-  openshift_v1_route:
-    name: '{{ keycloak_route_name }}'
-    namespace: '{{ namespace }}'
-    labels:
-      app: keycloak
-      service: keycloak
-      mobile: enabled
-    to_name: keycloak
-    spec_port_target_port: web
-  when: keycloak_protocol == 'http'
+- debug:
+    var: keycloak_service_raw
 
 - name: create keycloak https route
   openshift_v1_route:
@@ -99,34 +101,20 @@
     labels:
       app: keycloak
       service: keycloak
-      mobile: enabled
     tls_termination: edge
     tls_insecure_edge_termination_policy: Redirect
     to_name: keycloak
     spec_port_target_port: web
-  when: keycloak_protocol == 'https'
 
-- name: "Retrieve route to keycloak"
-  shell: "oc get routes keycloak -n '{{ namespace }}' | grep -v NAME | awk '{print $2}'"
-  register: keycloak_route
+- set_fact:
+    keycloak_route: '{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'
 
-- copy:
-    src: keycloak-metrics-spi-1.0-SNAPSHOT.jar
-    dest: /tmp/keycloak-metrics-spi-1.0-SNAPSHOT.jar
-
-- shell: oc get pods --namespace {{ namespace }} --selector="deploymentconfig=keycloak" | awk 'NR > 1 {print $1}'
-  register: get_pods
-
-- name: Copy jar into keycloaks metrics
-  shell: oc cp /tmp/keycloak-metrics-spi-1.0-SNAPSHOT.jar {{ namespace }}/{{ get_pods.stdout }}:/opt/jboss/keycloak/providers/
-  register: copy_jar
-  retries: 60
-  until: copy_jar.rc == 0
-  delay: 5
+- debug:
+    msg: 'http://{{ keycloak_route }}/auth/realms/master/protocol/openid-connect/token'
 
 - name: "Generate keycloak auth token"
   uri:
-    url: "{{ keycloak_protocol }}://{{ keycloak_route.stdout }}/auth/realms/master/protocol/openid-connect/token"
+    url: "http://{{ keycloak_route }}/auth/realms/master/protocol/openid-connect/token"
     method: POST
     body: "client_id=admin-cli&username={{ ADMIN_NAME }}&password={{ ADMIN_PASSWORD }}&grant_type=password"
     validate_certs: no
@@ -142,7 +130,7 @@
 
 - name: "Create {{ namespace }} realm"
   uri:
-    url: "{{ keycloak_protocol }}://{{ keycloak_route.stdout }}/auth/admin/realms"
+    url: "http://{{ keycloak_route }}/auth/admin/realms"
     method: POST
     body: "{{ lookup('file','/tmp/namespace_realm.json') }}"
     validate_certs: no
@@ -150,100 +138,6 @@
     headers:
       Authorization: "bearer {{ keycloak_auth_response.json.access_token }}"
     status_code: 201
-
--
-  name: Generate Username
-  shell: tr -d -c "a-zA-Z" < /dev/urandom | head -c 20
-  register: generated_username
-
--
-  name: Generate Password
-  shell: tr -d -c "a-zA-Z0-9" < /dev/urandom | head -c 20
-  register: generated_password
-
--
-  name: "Create {{ generated_username.stdout }} client in realm {{ namespace }}"
-  uri:
-    url: "{{ keycloak_protocol }}://{{ keycloak_route.stdout }}/auth/admin/realms/{{ namespace }}/clients"
-    method: POST
-    body: "{\"id\": \"{{ generated_username.stdout }}\", \"secret\": \"{{ generated_password.stdout }}\", \"redirectUris\":[\"http://localhost:*\"], \"webOrigins\":[\"http://localhost:8100\"], \"publicClient\": true }"
-    validate_certs: no
-    body_format: json
-    headers:
-      Authorization: "bearer {{ keycloak_auth_response.json.access_token }}"
-    status_code: 201
-
--
-  name: "Create {{ generated_username.stdout }}-bearer client in realm {{ namespace }}"
-  uri:
-    url: "{{ keycloak_protocol }}://{{ keycloak_route.stdout }}/auth/admin/realms/{{ namespace }}/clients"
-    method: POST
-    body: "{\"id\": \"{{ generated_username.stdout }}-bearer\", \"secret\": \"{{ generated_password.stdout }}\",\"bearerOnly\":true}"
-    validate_certs: no
-    body_format: json
-    headers:
-      Authorization: "bearer {{ keycloak_auth_response.json.access_token }}"
-    status_code: 201
-
--
-  name: Get installation details bearer
-  uri:
-    url: "{{ keycloak_protocol }}://{{ keycloak_route.stdout }}/auth/admin/realms/{{ namespace }}/clients/{{ generated_username.stdout }}-bearer/installation/providers/keycloak-oidc-keycloak-json"
-    method: GET
-    validate_certs: no
-    headers:
-      Authorization: "bearer {{ keycloak_auth_response.json.access_token }}"
-    status_code: 200
-    return_content: yes
-  register: installation_bearer
-
--
-  name: Get installation details
-  uri:
-    url: "{{ keycloak_protocol }}://{{ keycloak_route.stdout }}/auth/admin/realms/{{ namespace }}/clients/{{ generated_username.stdout }}/installation/providers/keycloak-oidc-keycloak-json"
-    method: GET
-    validate_certs: no
-    headers:
-      Authorization: "bearer {{ keycloak_auth_response.json.access_token }}"
-    status_code: 200
-    return_content: yes
-  register: installation_text
-
-- set_fact: installation="{{ installation_text.content | from_json }}"
-
-- name: Create client config from template
-  template:
-    src: installation.json.j2
-    dest: /tmp/installation.json
-
-- name: Retrieve client config
-  shell: cat /tmp/installation.json
-  register: installation_text
-
-- set_fact: installation="{{ installation_text.stdout | from_json }}"
-- set_fact: installationbearer="{{ installation_bearer.content | from_json }}"
-
-- k8s_v1_secret:
-    name: keycloak
-    namespace: '{{ namespace }}'
-    labels:
-      name: keycloak
-      mobile: enabled
-      serviceName: keycloak
-    string_data:
-      admin_username: '{{ ADMIN_NAME }}'
-      admin_password: '{{ ADMIN_PASSWORD }}'
-
-- name: Create keycloak bearer client template
-  template:
-    src: configmap.yml.j2
-    dest: /tmp/configmap.yaml
-
-- name: Create keycloak public client config map
-  shell: oc create -f /tmp/configmap.yaml -n {{ namespace }}
-
-- name: delete configmap template file
-  file: path=/tmp/configmap.yaml state=absent
 
 - name: encode admin user credentials
   asb_encode_binding:

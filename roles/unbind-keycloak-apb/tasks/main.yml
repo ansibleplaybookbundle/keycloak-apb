@@ -6,7 +6,7 @@
 
 - name: "Generate keycloak auth token"
   uri:
-    url: "{{ keycloak_protocol }}://{{ keycloak_route.stdout }}/auth/realms/master/protocol/openid-connect/token"
+    url: "https://{{ keycloak_route.stdout }}/auth/realms/master/protocol/openid-connect/token"
     method: POST
     body: "client_id=admin-cli&username={{ _apb_provision_creds.ADMIN_NAME }}&password={{
       _apb_provision_creds.ADMIN_PASSWORD }}&grant_type=password"
@@ -23,7 +23,7 @@
 -
   name: delete client {{ _apb_bind_creds.resource }} in realm {{ namespace }}
   uri:
-    url: "{{ keycloak_protocol }}://{{ keycloak_route.stdout }}/auth/admin/realms/{{ namespace }}/clients/{{ _apb_bind_creds.resource }}"
+    url: "https://{{ keycloak_route.stdout }}/auth/admin/realms/{{ namespace }}/clients/{{ _apb_bind_creds.resource }}"
     method: DELETE
     validate_certs: no
     headers:

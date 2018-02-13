@@ -2,7 +2,7 @@
 
 - name: Check that the keycloak webpage is accessible
   uri:
-    url: "{{ keycloak_protocol }}://{{ keycloak_route.stdout }}/auth/"
+    url: "https://{{ keycloak_route.stdout }}/auth/"
     return_content: yes
     validate_certs: no
   register: webpage
@@ -15,7 +15,7 @@
 
 - name: Check that the metrics endpoint works
   uri:
-    url: "{{ keycloak_protocol }}://{{ keycloak_route.stdout }}/auth/realms/master/metrics"
+    url: "https://{{ keycloak_route.stdout }}/auth/realms/master/metrics"
     return_content: yes
     validate_certs: no
   register: webpage

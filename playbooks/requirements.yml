@@ -1,3 +1,0 @@
-- src: https://github.com/aerogear/oc-patch-file-to-configmap-role
-  version: master
-  name: oc-patch-file-to-configmap

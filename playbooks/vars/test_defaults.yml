@@ -1,3 +1,3 @@
 ADMIN_NAME: "admin"
 ADMIN_PASSWORD: "admin"
-POSTGRESQL_EPHEMERAL: true
+_apb_plan_id: "ephemeral"

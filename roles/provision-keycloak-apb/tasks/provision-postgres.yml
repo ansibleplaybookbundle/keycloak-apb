@@ -1,22 +1,26 @@
 - name: generate password
-  shell: head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13 ; echo ''
-  register: gen_password
+  set_fact:
+    gen_password: "{{ lookup('password', '/tmp/pass chars=ascii_letters,digits length=13') }}"
 
 - k8s_v1_secret:
     name: '{{ postgres_secret_name }}'
     namespace: '{{ namespace }}'
+    labels:
+      app: keycloak
     annotations:
       template.openshift.io/expose-username: "{.data['database-user']}"
       template.openshift.io/expose-password: "{.data['database-password']}"
       template.openshift.io/expose-database_name: "{.data['database-name']}"
     string_data:
       database-user: 'keycloakpostgres'
-      database-password: '{{ gen_password.stdout }}'
+      database-password: '{{ gen_password }}'
       database-name: "{{ postgres_database_name }}"
 
 - k8s_v1_service:
     name: '{{ postgres_service_name }}'
     namespace: '{{ namespace }}'
+    labels:
+      app: keycloak
     annotations:
       template.openshift.io/expose-uri: postgres://{.spec.clusterIP}:{.spec.ports[?(.name=="postgresql")].port}
     ports:
@@ -30,15 +34,20 @@
     spec_type: ClusterIP
     session_affinity: None
 
-- k8s_v1_persistent_volume_claim:
+- name: Create Persistent Volume Claim for Postgresql
+
+  k8s_v1_persistent_volume_claim:
     name: '{{ postgres_service_name }}'
     namespace: '{{ namespace }}'
+    labels:
+      app: keycloak
     access_modes:
     - ReadWriteOnce
     resources_requests:
       storage: "1Gi"
 
-- openshift_v1_deployment_config:
+- name: Create Postgresql DeploymentConfig
+  openshift_v1_deployment_config:
     name: '{{ postgres_service_name }}'
     namespace: '{{ namespace }}'
     replicas: 1
