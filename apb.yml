@@ -30,6 +30,10 @@ plans:
       default: admin
       type: string
       title: Keycloak admin password
+    bind_parameters:
+    - name: service_name
+      title: Name of the service to bind
+      type: string
   - name: persistent
     description: Deploy keycloak with persistence
     free: True
@@ -46,3 +50,12 @@ plans:
       default: admin
       type: string
       title: Keycloak admin password
+    - name: PVC_SIZE
+      type: string
+      default: 200Mi
+      description: Database storage size
+      title: Storage size
+    bind_parameters:
+    - name: service_name
+      title: Name of the service to bind
+      type: string

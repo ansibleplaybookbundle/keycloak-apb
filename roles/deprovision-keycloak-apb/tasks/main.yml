@@ -1,6 +1,6 @@
 - name: delete route
   openshift_v1_route:
-    name: '{{ keycloak_route_name }}'
+    name: '{{ application_name }}'
     namespace: '{{ namespace }}'
     state: absent
 
@@ -10,8 +10,8 @@
     namespace: '{{ namespace }}'
     state: absent
   with_items:
-  - '{{ keycloak_service_name }}'
-  - postgres
+  - '{{ application_name }}'
+  - '{{ postgres_name }}'
 
 - name: delete deployment configs
   openshift_v1_deployment_config:
@@ -19,8 +19,8 @@
     namespace: '{{ namespace }}'
     state: absent
   with_items:
-  - keycloak
-  - postgres
+  - '{{ application_name }}'
+  - '{{ postgres_name }}'
 
 - name: delete secrets
   k8s_v1_secret:
@@ -28,17 +28,17 @@
     namespace: '{{ namespace }}'
     state: absent
   with_items:
-  - keycloak
-  - keycloak-postgres
+  - '{{ application_name }}'
+  - '{{ postgres_name }}'
 
 - name: delete config maps
   k8s_v1_config_map:
-    name: keycloak
+    name: '{{ application_name }}'
     namespace: '{{ namespace }}'
     state: absent
 
 - name: delete persistent volume claims
   k8s_v1_persistent_volume_claim:
-    name: postgres
+    name: '{{ postgres_name }}'
     namespace: '{{ namespace }}'
     state: absent
