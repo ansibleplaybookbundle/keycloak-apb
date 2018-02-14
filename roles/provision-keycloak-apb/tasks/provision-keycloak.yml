@@ -25,3 +25,10 @@
     headers:
       Authorization: "bearer {{ keycloak_auth_response.json.access_token }}"
     status_code: 201
+
+# New encoding task makes admin credentials available to future bind operations
+- name: encode bind credentials
+  asb_encode_binding:
+    fields:
+      admin_username: "{{ admin_username }}"
+      admin_password: "{{ admin_password }}"

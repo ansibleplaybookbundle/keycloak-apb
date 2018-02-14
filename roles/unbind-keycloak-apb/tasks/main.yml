@@ -11,16 +11,16 @@
   uri:
     url: "{{ keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
     method: POST
-    body: "client_id=admin-cli&username={{ admin_username }}&password={{ admin_password }}&grant_type=password"
+    body: "client_id=admin-cli&username={{ _apb_provision_creds.admin_username }}&password={{ _apb_provision_creds.admin_password }}&grant_type=password"
     validate_certs: no
   register: keycloak_auth_response
   until: keycloak_auth_response.status == 200
   retries: 20
   delay: 2
 
-- name: Delete client {{ service_name }} in realm {{ namespace }}
+- name: Delete client {{ _apb_bind_creds.SSO_CLIENT }} in realm {{ namespace }}
   uri:
-    url: "{{ keycloak_uri }}/auth/admin/realms/{{ namespace }}/clients/{{ service_name }}"
+    url: "{{ keycloak_uri }}/auth/admin/realms/{{ namespace }}/clients/{{ _apb_bind_creds.SSO_CLIENT }}"
     method: DELETE
     validate_certs: no
     headers:
