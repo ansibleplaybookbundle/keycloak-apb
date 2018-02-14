@@ -1,3 +1,4 @@
+---
 - name: generate password
   set_fact:
     gen_password: "{{ lookup('password', '/tmp/pass chars=ascii_letters,digits length=13') }}"
@@ -43,7 +44,7 @@
     access_modes:
     - ReadWriteOnce
     resources_requests:
-      storage: "{{ PVC_SIZE }}"
+      storage: "{{ pvc_size }}"
 
 - name: Create Postgresql DeploymentConfig
   openshift_v1_deployment_config:

@@ -1,114 +1,9 @@
-- name: create Keycloak ephemeral deployment config
-  when: _apb_plan_id == 'ephemeral'
-  openshift_v1_deployment_config:
-    name: '{{ application_name }}'
-    namespace: '{{ namespace }}'
-    labels:
-      app: '{{ application_name }}'
-      service: '{{ application_name }}'
-    replicas: 1
-    selector:
-      app: '{{ application_name }}'
-      service: '{{ application_name }}'
-    spec_template_metadata_labels:
-      app: '{{ application_name }}'
-      service: '{{ application_name }}'
-    containers:
-    - env:
-      - name: KEYCLOAK_USER
-        value: '{{ ADMIN_NAME }}'
-      - name: KEYCLOAK_PASSWORD
-        value: '{{ ADMIN_PASSWORD }}'
-      - name: PROXY_ADDRESS_FORWARDING
-        value: 'true'
-      - name: DB_VENDOR
-        value: H2
-      image: 'docker.io/jboss/keycloak-openshift:{{ keycloak_image_tag }}'
-      name: keycloak
-      ports:
-      - container_port: 8080
-        protocol: TCP
-
-- name: create Keycloak persistent deployment config
-  when: _apb_plan_id == 'persistent'
-  openshift_v1_deployment_config:
-    name: '{{ application_name }}'
-    namespace: '{{ namespace }}'
-    labels:
-      app: '{{ application_name }}'
-      service: '{{ application_name }}'
-    replicas: 1
-    selector:
-      app: '{{ application_name }}'
-      service: '{{ application_name }}'
-    spec_template_metadata_labels:
-      app: '{{ application_name }}'
-      service: '{{ application_name }}'
-    containers:
-    - env:
-      - name: KEYCLOAK_USER
-        value: '{{ ADMIN_NAME }}'
-      - name: KEYCLOAK_PASSWORD
-        value: '{{ ADMIN_PASSWORD }}'
-      - name: PROXY_ADDRESS_FORWARDING
-        value: 'true'
-      - name: POSTGRES_USER
-        value_from:
-          secret_key_ref:
-            name: '{{ postgres_name }}'
-            key: database-user
-      - name: POSTGRES_PASSWORD
-        value_from:
-          secret_key_ref:
-            name: '{{ postgres_name }}'
-            key: database-password
-      - name: POSTGRES_DATABASE
-        value_from:
-          secret_key_ref:
-            name: '{{ postgres_name }}'
-            key: database-name
-      image: 'docker.io/jboss/keycloak-openshift:{{ keycloak_image_tag }}'
-      name: keycloak
-      ports:
-      - container_port: 8080
-        protocol: TCP
-
-- name: create keycloak service
-  k8s_v1_service:
-    name: '{{ application_name }}'
-    namespace: '{{ namespace }}'
-    labels:
-      app: '{{ application_name }}'
-      service: '{{ application_name }}'
-    selector:
-      app: '{{ application_name }}'
-      service: '{{ application_name }}'
-    ports:
-    - name: web
-      port: 80
-      target_port: 8080
-  register: keycloak_service_raw
-
-- name: create keycloak https route
-  openshift_v1_route:
-    name: '{{ application_name }}'
-    namespace: '{{ namespace }}'
-    labels:
-      app: '{{ application_name }}'
-      service: '{{ application_name }}'
-    tls_termination: edge
-    tls_insecure_edge_termination_policy: Redirect
-    to_name: '{{ application_name }}'
-    spec_port_target_port: web
-
-- set_fact:
-    keycloak_uri: 'http://{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'
-
-- name: "Generate keycloak auth token"
+---
+- name: Generate keycloak auth token
   uri:
     url: "{{ keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
     method: POST
-    body: "client_id=admin-cli&username={{ ADMIN_NAME }}&password={{ ADMIN_PASSWORD }}&grant_type=password"
+    body: "client_id=admin-cli&username={{ admin_username }}&password={{ admin_password }}&grant_type=password"
     validate_certs: no
   register: keycloak_auth_response
   until: keycloak_auth_response.status == 200
@@ -130,19 +25,3 @@
     headers:
       Authorization: "bearer {{ keycloak_auth_response.json.access_token }}"
     status_code: 201
-
-- name: Create Secret for future bindings
-  k8s_v1_secret:
-    name: '{{ application_name }}'
-    namespace: '{{ namespace }}'
-    labels:
-      app: '{{ application_name }}'
-    string_data:
-      admin_username: '{{ ADMIN_NAME }}'
-      admin_password: '{{ ADMIN_PASSWORD }}'
-
-# - name: encode admin user credentials
-#   asb_encode_binding:
-#     fields:
-#       ADMIN_NAME: "{{ ADMIN_NAME }}"
-#       ADMIN_PASSWORD: "{{ ADMIN_PASSWORD }}"

@@ -14,14 +14,14 @@
   register: keycloak_secret
 
 - set_fact:
-    ADMIN_NAME:'{{ keycloak_secret.secret.data.adminUsername | b64decode }}'
-    ADMIN_PASSWORD:'{{ keycloak_secret.secret.data.adminPassword | b64decode}}'
+    admin_username:'{{ keycloak_secret.secret.data.adminUsername | b64decode }}'
+    admin_password:'{{ keycloak_secret.secret.data.adminPassword | b64decode}}'
 
 - name: Generate keycloak auth token
   uri:
     url: "{{ keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
     method: POST
-    body: "client_id=admin-cli&username={{ ADMIN_NAME }}&password={{ ADMIN_PASSWORD }}&grant_type=password"
+    body: "client_id=admin-cli&username={{ admin_username }}&password={{ admin_password }}&grant_type=password"
     validate_certs: no
   register: keycloak_auth_response
   until: keycloak_auth_response.status == 200

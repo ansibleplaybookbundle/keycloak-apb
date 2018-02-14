@@ -1,27 +1,24 @@
 ---
+- name: "Retrieve Service to keycloak"
+  k8s_v1_service:
+    name: '{{ application_name }}'
+    namespace: '{{ namespace }}'
+  register: keycloak_service_raw
+
+- set_fact:
+    keycloak_uri: 'http://{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'
 
 - name: Check that the keycloak webpage is accessible
   uri:
-    url: "https://{{ keycloak_route.stdout }}/auth/"
+    url: "{{ keycloak_uri }}"
     return_content: yes
     validate_certs: no
   register: webpage
   retries: 10
   delay: 20
   failed_when:
-    - webpage.status == 403
+    - webpage.status != 200
     - '"Welcome to Keycloak" not in webpage.content'
-  until: '"Welcome to Keycloak" in webpage.content'
-
-- name: Check that the metrics endpoint works
-  uri:
-    url: "https://{{ keycloak_route.stdout }}/auth/realms/master/metrics"
-    return_content: yes
-    validate_certs: no
-  register: webpage
-  retries: 10
-  delay: 20
-  failed_when:
-    - webpage.status == 403
-    - '"kc_logged_in_users" not in webpage.content'
-  until: '"kc_logged_in_users" in webpage.content'
+  until:
+    - '"Welcome to Keycloak" in webpage.content'
+    - webpage.status == 200

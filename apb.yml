@@ -20,17 +20,27 @@ plans:
     metadata:
       displayName: Keycloak ephemeral
     parameters:
-    - name: ADMIN_NAME
+    - name: admin_username
       required: True
       default: admin
       type: string
       title: Keycloak admin username
-    - name: ADMIN_PASSWORD
+    - name: admin_password
       required: True
       default: admin
       type: string
+      display_type: password
       title: Keycloak admin password
     bind_parameters:
+    - name: admin_username
+      required: True
+      default: admin
+      type: string
+      title: Keycloak admin username
+    - name: admin_password
+      required: True
+      default: admin
+      type: string
     - name: service_name
       title: Name of the service to bind
       type: string
@@ -44,22 +54,72 @@ plans:
     metadata:
       displayName: Keycloak persistent
     parameters:
-    - name: ADMIN_NAME
+    - name: admin_username
       required: True
       default: admin
       type: string
       title: Keycloak admin username
-    - name: ADMIN_PASSWORD
+    - name: admin_password
       required: True
       default: admin
-      type: password
+      type: string
+      display_type: password
       title: Keycloak admin password
-    - name: PVC_SIZE
+    - name: pvc_size
       type: string
       default: 200Mi
       description: Database storage size
       title: Storage size
     bind_parameters:
+    - name: admin_username
+      required: True
+      default: admin
+      type: string
+      title: Keycloak admin username
+    - name: admin_password
+      required: True
+      default: admin
+      type: string
+    - name: service_name
+      required: True
+      title: Name of the service to bind
+      type: string
+    - name: redirect_uris
+      required: True
+      title: Redirect URIs
+      description: Valid Redirect URIs a browser can redirect to after a successful login/logout. Simple wildcards are allowed. e.g. https://myservice-myproject.apps.example.com/*
+      type: string
+  - name: external
+    description: Allows authenticating applications to an external Keycloak instance
+    free: True
+    metadata:
+      displayName: Keycloak (external)
+    parameters:
+    - name: admin_username
+      required: True
+      default: admin
+      type: string
+      title: Keycloak admin username
+    - name: admin_password
+      required: True
+      default: admin
+      type: string
+      display_type: password
+      title: Keycloak admin password
+    - name: keycloak_uri
+      required: True
+      type: string
+      title: External Keycloak URL
+    bind_parameters:
+    - name: admin_username
+      required: True
+      default: admin
+      type: string
+      title: Keycloak admin username
+    - name: admin_password
+      required: True
+      default: admin
+      type: string
     - name: service_name
       title: Name of the service to bind
       type: string
