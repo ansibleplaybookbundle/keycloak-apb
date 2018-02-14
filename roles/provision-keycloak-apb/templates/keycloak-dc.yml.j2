@@ -68,7 +68,7 @@ spec:
   - imageChangeParams:
       automatic: true
       containerNames:
-      - kibana
+      - keycloak
       from:
         kind: ImageStreamTag
         name: {{ application_name }}:{{ keycloak_image_tag }}

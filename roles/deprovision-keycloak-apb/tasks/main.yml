@@ -24,16 +24,7 @@
 
 - name: delete secrets
   k8s_v1_secret:
-    name: '{{ item }}'
-    namespace: '{{ namespace }}'
-    state: absent
-  with_items:
-  - '{{ application_name }}'
-  - '{{ postgres_name }}'
-
-- name: delete config maps
-  k8s_v1_config_map:
-    name: '{{ application_name }}'
+    name: '{{ postgres_name }}'
     namespace: '{{ namespace }}'
     state: absent
 
@@ -41,4 +32,10 @@
   k8s_v1_persistent_volume_claim:
     name: '{{ postgres_name }}'
     namespace: '{{ namespace }}'
+    state: absent
+
+- name: Delete ImageStream
+  openshift_v1_image_stream:
+    name: "{{ application_name }}"
+    namespace: "{{ namespace }}"
     state: absent
