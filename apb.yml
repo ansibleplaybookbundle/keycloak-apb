@@ -31,13 +31,6 @@ plans:
       display_type: password
       title: Keycloak admin password
     bind_parameters:
-    - name: admin_username
-      required: True
-      type: string
-      title: Keycloak admin username
-    - name: admin_password
-      required: True
-      type: string
     - name: service_name
       title: Name of the service to bind
       type: string
@@ -68,13 +61,6 @@ plans:
       description: Database storage size
       title: Storage size
     bind_parameters:
-    - name: admin_username
-      required: True
-      type: string
-      title: Keycloak admin username
-    - name: admin_password
-      required: True
-      type: string
     - name: service_name
       required: True
       title: Name of the service to bind
@@ -105,13 +91,6 @@ plans:
       type: string
       title: External Keycloak URL
     bind_parameters:
-    - name: admin_username
-      required: True
-      type: string
-      title: Keycloak admin username
-    - name: admin_password
-      required: True
-      type: string
     - name: service_name
       title: Name of the service to bind
       type: string

@@ -13,7 +13,7 @@
   uri:
     url: "{{ keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
     method: POST
-    body: "client_id=admin-cli&username={{ admin_name }}&password={{ admin_password }}&grant_type=password"
+    body: "client_id=admin-cli&username={{ admin_username }}&password={{ admin_password }}&grant_type=password"
     validate_certs: no
   register: keycloak_auth_response
   until: keycloak_auth_response.status == 200
@@ -24,7 +24,7 @@
   uri:
     url: "{{ keycloak_uri }}/auth/admin/realms/{{ namespace }}/clients"
     method: POST
-    body: "{\"id\": \"{{ service_name }}\", \"redirectUris\": \"{{ redirect_uris }}\", \"publicClient\": true }"
+    body: "{\"id\": \"{{ service_name }}\", \"redirectUris\": [\"{{ redirect_uris }}\"], \"publicClient\": true }"
     validate_certs: no
     body_format: json
     headers:

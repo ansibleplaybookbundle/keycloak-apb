@@ -7,16 +7,6 @@
 - set_fact:
     keycloak_uri: 'http://{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'
 
-- name: Get secret with keycloak credentials
-  k8s_v1_secret:
-    name: '{{ application_name }}'
-    namespace: '{{ namespace }}'
-  register: keycloak_secret
-
-- set_fact:
-    admin_username:'{{ keycloak_secret.secret.data.adminUsername | b64decode }}'
-    admin_password:'{{ keycloak_secret.secret.data.adminPassword | b64decode}}'
-
 - name: Generate keycloak auth token
   uri:
     url: "{{ keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
