@@ -23,6 +23,7 @@ spec:
         name: keycloak
         readinessProbe:
           initialDelaySeconds: 40
+          failureThreshold: 10
           httpGet:
             path: /
             port: web
