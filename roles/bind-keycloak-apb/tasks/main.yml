@@ -1,60 +1,54 @@
--
-  name: Generate Username
-  shell: tr -d -c "a-zA-Z" < /dev/urandom | head -c 20
-  register: generated_username
+- name: "Retrieve Service to keycloak"
+  k8s_v1_service:
+    name: '{{ application_name }}'
+    namespace: '{{ namespace }}'
+  register: keycloak_service_raw
 
--
-  name: Generate Password
-  shell: tr -d -c "a-zA-Z0-9" < /dev/urandom | head -c 20
-  register: generated_password
+- set_fact:
+    keycloak_uri: 'http://{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'
 
--
-  name: "Retrieve route to keycloak"
-  shell: "oc get routes keycloak -n '{{ namespace }}' | grep -v NAME | awk '{print $2}'"
-  register: keycloak_route
+- name: "Get secret with keycloak credentials"
+  k8s_v1_secret:
+    name: '{{ application_name }}'
+    namespace: '{{ namespace }}'
+  register: keycloak_secret
+
+- set_fact:
+    ADMIN_NAME:'{{ keycloak_secret.secret.data.adminUsername | b64decode }}'
+    ADMIN_PASSWORD:'{{ keycloak_secret.secret.data.adminPassword | b64decode}}'
+
+- debug: 'msg=admin {{ ADMIN_NAME }} and pass {{ ADMIN_PASSWORD}}'
 
 - name: "Generate keycloak auth token"
   uri:
-    url: "https://{{ keycloak_route.stdout }}/auth/realms/master/protocol/openid-connect/token"
+    url: "{{ keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
     method: POST
-    body: "client_id=admin-cli&username={{ _apb_provision_creds.ADMIN_NAME }}&password={{ _apb_provision_creds.ADMIN_PASSWORD }}&grant_type=password"
+    body: "client_id=admin-cli&username={{ ADMIN_NAME }}&password={{ ADMIN_PASSWORD }}&grant_type=password"
     validate_certs: no
   register: keycloak_auth_response
   until: keycloak_auth_response.status == 200
-  retries: 600
+  retries: 100
   delay: 2
 
--
-  name: "Create {{ service }}-bearer client in realm {{ namespace }}"
+- name: "Create {{ service_name }} client in realm {{ namespace }}"
   uri:
-    url: "https://{{ keycloak_route.stdout }}/auth/admin/realms/{{ namespace }}/clients"
+    url: "{{ keycloak_uri }}/auth/admin/realms/{{ namespace }}/clients"
     method: POST
-    body: "{\"id\": \"{{ service}}-bearer\", \"secret\": \"{{ generated_password.stdout }}\",\"bearerOnly\":true}"
+    body: "{\"id\": \"{{ service_name }}\", \"publicClient\": true }"
     validate_certs: no
     body_format: json
     headers:
       Authorization: "bearer {{ keycloak_auth_response.json.access_token }}"
     status_code: 201, 409
 
-
--
-  name: Get installation details bearer
-  uri:
-    url: "https://{{ keycloak_route.stdout }}/auth/admin/realms/{{ namespace }}/clients/{{ service}}-bearer/installation/providers/keycloak-oidc-keycloak-json"
-    method: GET
-    validate_certs: no
-    headers:
-      Authorization: "bearer {{ keycloak_auth_response.json.access_token }}"
-    status_code: 200
-    return_content: yes
-  register: installation_bearer
-
-- name: encode {{ service }} credentials
+##
+# Currently the env variables are not bound to the target DC.
+# Alternatives
+# 1. asb_encode_binding
+# 2. inject env variables directly to DC
+- name: Encode {{ service_name }} credentials
   asb_encode_binding:
     fields:
-      name: "keycloak-bearer"
-      resource: "{{ service }}-bearer"
-      bearer_installation: "{{ installation_bearer.content }}"
-      uri: "https://{{ keycloak_route.stdout }}"
-      client_id: "{{ generated_username.stdout }}"
-      client_secret: "{{ generated_password.stdout }}"
+      SSO_REALM: "{{ namespace }}"
+      SSO_CLIENT: "{{ service_name }}"
+      SSO_URI: "{{ keycloak_uri }}/auth"

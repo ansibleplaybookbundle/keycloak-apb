@@ -141,8 +141,8 @@
       admin_username: '{{ ADMIN_NAME }}'
       admin_password: '{{ ADMIN_PASSWORD }}'
 
-- name: encode admin user credentials
-  asb_encode_binding:
-    fields:
-      ADMIN_NAME: "{{ ADMIN_NAME }}"
-      ADMIN_PASSWORD: "{{ ADMIN_PASSWORD }}"
+# - name: encode admin user credentials
+#   asb_encode_binding:
+#     fields:
+#       ADMIN_NAME: "{{ ADMIN_NAME }}"
+#       ADMIN_PASSWORD: "{{ ADMIN_PASSWORD }}"

@@ -34,6 +34,10 @@ plans:
     - name: service_name
       title: Name of the service to bind
       type: string
+    - name: redirect_uris
+      title: Redirect URIs
+      description: Valid Redirect URIs a browser can redirect to after a successful login/logout. Simple wildcards are allowed. e.g. https://myservice-myproject.apps.example.com/*
+      type: string
   - name: persistent
     description: Deploy keycloak with persistence
     free: True
@@ -48,7 +52,7 @@ plans:
     - name: ADMIN_PASSWORD
       required: True
       default: admin
-      type: string
+      type: password
       title: Keycloak admin password
     - name: PVC_SIZE
       type: string
@@ -58,4 +62,8 @@ plans:
     bind_parameters:
     - name: service_name
       title: Name of the service to bind
+      type: string
+    - name: redirect_uris
+      title: Redirect URIs
+      description: Valid Redirect URIs a browser can redirect to after a successful login/logout. Simple wildcards are allowed. e.g. https://myservice-myproject.apps.example.com/*
       type: string
