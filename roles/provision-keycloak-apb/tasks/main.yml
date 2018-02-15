@@ -1,6 +1,6 @@
 ---
 - name: "[POSTGRES] Deploy"
-  include_tasks: provision-postgres.yml
+  include_tasks: deploy-postgres.yml
   when: _apb_plan_id == 'persistent'
 
 - name: "[KEYCLOAK] Deploy"

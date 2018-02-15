@@ -1,4 +1,25 @@
 ---
+- name: Retrieve Postgres DeploymentConfig
+  openshift_v1_deployment_config:
+    name: '{{ postgres_name }}'
+    namespace: '{{ namespace }}'
+  register: postgres_dc
+  retries: 10
+  delay: 20
+  when: _apb_plan_id == 'persistent'
+
+- debug:
+    var: postgres_dc
+  when: _apb_plan_id == 'persistent'
+
+- name: Check Postgres is not ready
+  asb_save_test_result:
+    fail: true
+    msg: "Postgres doesn't seem to be ready"
+  when:
+    - _apb_plan_id == 'persistent'
+    - postgres_dc is defined && postgres_dc.deployment_config.status.available_replicas == 0
+
 - name: "Retrieve Service to keycloak"
   k8s_v1_service:
     name: '{{ application_name }}'
@@ -10,7 +31,7 @@
 
 - name: Check that the keycloak webpage is accessible
   uri:
-    url: "{{ keycloak_uri }}"
+    url: "{{ keycloak_uri }}/auth/"
     return_content: yes
     validate_certs: no
   register: webpage
@@ -22,3 +43,29 @@
   until:
     - '"Welcome to Keycloak" in webpage.content'
     - webpage.status == 200
+
+- name: Generate keycloak auth token
+  uri:
+    url: "{{ keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
+    method: POST
+    body: "client_id=admin-cli&username={{ admin_username }}&password={{ admin_password }}&grant_type=password"
+    validate_certs: no
+  register: keycloak_auth_response
+  until: keycloak_auth_response.status == 200
+  retries: 600
+  delay: 2
+
+- set_fact:
+    auth_token: '{{ keycloak_auth_response.json.access_token }}'
+
+- name: "Check {{ namespace }} realm"
+  uri:
+    url: "{{ keycloak_uri }}/auth/admin/realms/{{ namespace }}"
+    method: GET
+    validate_certs: no
+    headers:
+      Authorization: "bearer {{ auth_token }}"
+    status_code: 200
+  register: realm_response
+  failed:
+    - realm_response.status != 200

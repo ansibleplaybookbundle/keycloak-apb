@@ -1,0 +1,32 @@
+---
+- name: "[TESTS][{{ _apb_plan_id | upper }}] Load default variables for testing"
+  include_vars: '{{ item }}'
+  with_items:
+    - test_defaults.yml
+    - test_{{ _apb_plan_id }}_defaults.yml
+
+- name: "[TESTS][{{ _apb_plan_id | upper }}] Create project for namespace"
+  openshift_v1_project:
+    name: '{{ namespace }}'
+
+- name: "[TESTS][{{ _apb_plan_id | upper }}] Run the provision role."
+  include_role:
+    name: provision-keycloak-apb
+
+- name: "[TESTS][{{ _apb_plan_id | upper }}] Run the test role."
+  include_role:
+    name: test-provision-apb
+
+- name: "[TESTS][{{ _apb_plan_id | upper }}] Run the deprovision role."
+  include_role:
+    name: deprovision-keycloak-apb
+
+- name: "[TESTS][{{ _apb_plan_id | upper }}] Run the deprovision test role."
+  include_role:
+    name: test-deprovision-apb
+
+- name: "[TESTS][{{ _apb_plan_id | upper }}] Remove binding secret."
+  k8s_v1_secret:
+    name: "{{ lookup('env', 'HOSTNAME') }}"
+    namespace: '{{ namespace }}'
+    state: absent

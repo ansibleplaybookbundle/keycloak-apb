@@ -27,7 +27,7 @@
     status_code: 201
 
 # New encoding task makes admin credentials available to future bind operations
-- name: encode bind credentials
+- name: Encode provision credentials
   asb_encode_binding:
     fields:
       admin_username: "{{ admin_username }}"

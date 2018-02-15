@@ -5,26 +5,25 @@
   connection: local
   vars_files:
   - /opt/ansible/vars/main.yml
-
   roles:
   - role: ansible.kubernetes-modules
     install_python_requirements: no
+    playbook_debug: true
   - role: ansibleplaybookbundle.asb-modules
+
   post_tasks:
-  - name: Load default variables for testing
-    include_vars: test_defaults.yml
-  - name: create project for namespace
-    openshift_v1_project:
-      name: '{{ namespace }}'
-  - name: Run the provision role.
-    include_role:
-      name: provision-keycloak-apb
-  - name: Run the test role.
-    include_role:
-      name: test-provision-apb
-  - name: Run the deprovision role.
-    include_role:
-      name: deprovision-keycloak-apb
-  - name: Run the deprovision test role.
-    include_role:
-      name: test-deprovision-apb
+    - name: "[TESTS] Start tests"
+      include_tasks: test_plan.yml
+      vars:
+        _apb_plan_id: '{{ plan_id }}'
+      with_items:
+        - ephemeral
+        - persistent
+        # No need to test it as it requires an existing keycloak
+        # therefore the test will be exactly the same as the ephemeral
+        # - external
+      loop_control:
+        loop_var: plan_id
+    - name: "[TEST][ALL] Success"
+      asb_save_test_result:
+        msg: 'All tests passed!'

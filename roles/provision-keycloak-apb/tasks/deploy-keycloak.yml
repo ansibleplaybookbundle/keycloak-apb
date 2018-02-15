@@ -25,7 +25,7 @@
     state: present
     src: "{{ dc.dest | default(dc.path) }}"
 
-- name: create keycloak service
+- name: Create keycloak service
   k8s_v1_service:
     name: '{{ application_name }}'
     namespace: '{{ namespace }}'
@@ -53,5 +53,6 @@
     to_name: '{{ application_name }}'
     spec_port_target_port: web
 
-- set_fact:
+- name: "Set keycloak uri from service"
+  set_fact:
     keycloak_uri: 'http://{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'

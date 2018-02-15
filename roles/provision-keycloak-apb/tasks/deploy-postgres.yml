@@ -1,9 +1,10 @@
 ---
-- name: generate password
+- name: Generate admin password
   set_fact:
     gen_password: "{{ lookup('password', '/tmp/pass chars=ascii_letters,digits length=13') }}"
 
-- k8s_v1_secret:
+- name: Create Postgres secret
+  k8s_v1_secret:
     name: '{{ postgres_name }}'
     namespace: '{{ namespace }}'
     labels:
@@ -17,7 +18,8 @@
       database-password: '{{ gen_password }}'
       database-name: '{{ namespace }}'
 
-- k8s_v1_service:
+- name: Create Postgres service
+  k8s_v1_service:
     name: '{{ postgres_name }}'
     namespace: '{{ namespace }}'
     labels:
