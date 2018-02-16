@@ -55,4 +55,4 @@
 
 - name: "Set keycloak uri from service"
   set_fact:
-    keycloak_uri: 'http://{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'
+    internal_keycloak_uri: 'http://{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'

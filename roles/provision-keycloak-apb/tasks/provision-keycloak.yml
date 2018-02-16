@@ -1,13 +1,22 @@
 ---
+- name: Get namespace info
+  k8s_v1_namespace:
+    name: "{{ namespace }}"
+  register: project
+
+- name: Get project name
+  set_fact:
+    project_name: '{{project.namespace.metadata.annotations["openshift.io/display-name"]}}'
+
 - name: Generate keycloak auth token
   uri:
-    url: "{{ keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
+    url: "{{ internal_keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
     method: POST
     body: "client_id=admin-cli&username={{ admin_username }}&password={{ admin_password }}&grant_type=password"
     validate_certs: no
   register: keycloak_auth_response
   until: keycloak_auth_response.status == 200
-  retries: 100
+  retries: 5
   delay: 2
 
 - name: Generate namespace specific realm
@@ -17,7 +26,7 @@
 
 - name: "Create {{ namespace }} realm"
   uri:
-    url: "{{ keycloak_uri }}/auth/admin/realms"
+    url: "{{ internal_keycloak_uri }}/auth/admin/realms"
     method: POST
     body: "{{ lookup('file','/tmp/keycloak/namespace_realm.json') }}"
     validate_certs: no
@@ -32,3 +41,5 @@
     fields:
       admin_username: "{{ admin_username }}"
       admin_password: "{{ admin_password }}"
+      internal_keycloak_uri: "{{ internal_keycloak_uri }}"
+      external_keycloak_uri: "{{ external_keycloak_uri }}"

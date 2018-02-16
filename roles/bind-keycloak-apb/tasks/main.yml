@@ -1,17 +1,6 @@
-- name: "Retrieve Service Keycloak"
-  k8s_v1_service:
-    name: '{{ application_name }}'
-    namespace: '{{ namespace }}'
-  register: keycloak_service_raw
-  when: _apb_plan_id != 'external'
-
-- set_fact:
-    keycloak_uri: 'http://{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'
-  when: _apb_plan_id != 'external'
-
 - name: "Generate keycloak auth token"
   uri:
-    url: "{{ keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
+    url: "{{ _apb_provision_creds.internal_keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
     method: POST
     body: "client_id=admin-cli&username={{ _apb_provision_creds.admin_username }}&password={{ _apb_provision_creds.admin_password }}&grant_type=password"
     validate_certs: no
@@ -22,18 +11,18 @@
 
 - name: "Create {{ service_name }} client in realm {{ namespace }}"
   uri:
-    url: "{{ keycloak_uri }}/auth/admin/realms/{{ namespace }}/clients"
+    url: "{{ _apb_provision_creds.internal_keycloak_uri }}/auth/admin/realms/{{ namespace }}/clients"
     method: POST
-    body: "{\"id\": \"{{ service_name }}\", \"redirectUris\": [\"{{ redirect_uris }}\"], \"publicClient\": true }"
+    body: "{\"id\": \"{{ namespace }}-{{ service_name }}\", \"redirectUris\": [\"{{ redirect_uris }}\"], \"publicClient\": true }"
     validate_certs: no
     body_format: json
     headers:
       Authorization: "bearer {{ keycloak_auth_response.json.access_token }}"
-    status_code: 201, 409
+    status_code: 201
 
 - name: Encode {{ service_name }} credentials
   asb_encode_binding:
     fields:
       SSO_REALM: "{{ namespace }}"
-      SSO_CLIENT: "{{ service_name }}"
-      SSO_URL: "{{ keycloak_uri }}/auth"
+      SSO_CLIENT: "{{ namespace }}-{{ service_name }}"
+      SSO_URL: "{{ _apb_provision_creds.external_keycloak_uri }}/auth"

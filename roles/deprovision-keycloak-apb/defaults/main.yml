@@ -1,0 +1,3 @@
+---
+external_keycloak_uri: '{{ apb_external_keycloak_uri }}'
+internal_keycloak_uri: '{{ apb_internal_keycloak_uri | default(apb_external_keycloak_uri) }}'

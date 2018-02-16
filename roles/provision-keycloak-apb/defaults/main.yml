@@ -6,3 +6,6 @@ keycloak_image_tag: 3.4.3.Final
 postgres_image: centos/postgresql-95-centos7
 postgres_image_tag: '9.5'
 database_name: '{{ namespace }}'
+
+external_keycloak_uri: '{{ apb_external_keycloak_uri }}'
+internal_keycloak_uri: '{{ apb_internal_keycloak_uri | default(apb_external_keycloak_uri) }}'

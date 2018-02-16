@@ -86,10 +86,16 @@ plans:
       type: string
       display_type: password
       title: Keycloak admin password
-    - name: keycloak_uri
+    - name: apb_external_keycloak_uri
       required: True
       type: string
       title: External Keycloak URL
+      description: Public URL where the applications should redirect to for authentication. Must be resolvable by the browser.
+    - name: apb_internal_keycloak_uri
+      required: False
+      type: string
+      title: Internal Keycloak URL
+      description: If Keycloak is also deployed on OpenShift, the external Keycloak URL might not be DNS-resolvable. Use `http://service.namespace.svc.cluster.local:service_port` instead. Leave empty to use the External URI.
     bind_parameters:
     - name: service_name
       title: Name of the service to bind

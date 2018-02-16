@@ -1,26 +1,17 @@
-- name: Retrieve Service to keycloak
-  k8s_v1_service:
-    name: '{{ application_name }}'
-    namespace: '{{ namespace }}'
-  register: keycloak_service_raw
-
-- set_fact:
-    keycloak_uri: 'http://{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'
-
 - name: Generate keycloak auth token
   uri:
-    url: "{{ keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
+    url: "{{ _apb_provision_creds.internal_keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
     method: POST
     body: "client_id=admin-cli&username={{ _apb_provision_creds.admin_username }}&password={{ _apb_provision_creds.admin_password }}&grant_type=password"
     validate_certs: no
   register: keycloak_auth_response
   until: keycloak_auth_response.status == 200
-  retries: 20
+  retries: 5
   delay: 2
 
 - name: Delete client {{ _apb_bind_creds.SSO_CLIENT }} in realm {{ namespace }}
   uri:
-    url: "{{ keycloak_uri }}/auth/admin/realms/{{ namespace }}/clients/{{ _apb_bind_creds.SSO_CLIENT }}"
+    url: "{{ _apb_provision_creds.internal_keycloak_uri }}/auth/admin/realms/{{ namespace }}/clients/{{ _apb_bind_creds.SSO_CLIENT }}"
     method: DELETE
     validate_certs: no
     headers:
