@@ -14,11 +14,9 @@
   post_tasks:
     - name: "[TESTS] Start tests"
       include_tasks: test_plan.yml
-      vars:
-        _apb_plan_id: '{{ plan_id }}'
       with_items:
-        - ephemeral
         - persistent
+        - ephemeral
         # No need to test it as it requires an existing keycloak
         # therefore the test will be exactly the same as the ephemeral
         # - external

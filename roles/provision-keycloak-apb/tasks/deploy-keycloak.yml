@@ -2,7 +2,7 @@
 - name: Process ImageStream from template
   template:
     src: keycloak-is.yml.j2
-    dest: "/tmp/keycloak-is.yml"
+    dest: "/tmp/keycloak/keycloak-is.yml"
   register: is
 
 - name: Create ImageStream
@@ -15,7 +15,7 @@
 - name: Process DeploymentConfig from template
   template:
     src: keycloak-dc.yml.j2
-    dest: "/tmp/keycloak-dc.yml"
+    dest: "/tmp/keycloak/keycloak-dc.yml"
   register: dc
 
 - name: Create DeploymentConfig

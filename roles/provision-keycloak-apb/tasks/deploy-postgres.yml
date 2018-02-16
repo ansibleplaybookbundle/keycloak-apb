@@ -1,7 +1,7 @@
 ---
 - name: Generate admin password
   set_fact:
-    gen_password: "{{ lookup('password', '/tmp/pass chars=ascii_letters,digits length=13') }}"
+    gen_password: "{{ lookup('password', '/tmp/keycloak/pass chars=ascii_letters,digits length=13') }}"
 
 - name: Create Postgres secret
   k8s_v1_secret:
@@ -14,9 +14,9 @@
       template.openshift.io/expose-password: "{.data['database-password']}"
       template.openshift.io/expose-database_name: "{.data['database-name']}"
     string_data:
-      database-user: 'keycloakpostgres'
+      database-user: '{{ application_name }}'
       database-password: '{{ gen_password }}'
-      database-name: '{{ namespace }}'
+      database-name: '{{ database_name  | replace("-", "_") }}'
 
 - name: Create Postgres service
   k8s_v1_service:
@@ -55,7 +55,6 @@
     replicas: 1
     labels:
       app: '{{ application_name }}'
-      service: '{{ postgres_name }}'
     spec_template_metadata_labels:
       app: '{{ application_name }}'
       name: '{{ postgres_name }}'

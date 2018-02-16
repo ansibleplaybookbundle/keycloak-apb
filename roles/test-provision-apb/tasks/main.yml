@@ -8,17 +8,13 @@
   delay: 20
   when: _apb_plan_id == 'persistent'
 
-- debug:
-    var: postgres_dc
-  when: _apb_plan_id == 'persistent'
-
-- name: Check Postgres is not ready
+- name: Check Postgres is ready
   asb_save_test_result:
     fail: true
     msg: "Postgres doesn't seem to be ready"
   when:
     - _apb_plan_id == 'persistent'
-    - postgres_dc is defined && postgres_dc.deployment_config.status.available_replicas == 0
+    - postgres_dc.deployment_config.status.available_replicas == 0
 
 - name: "Retrieve Service to keycloak"
   k8s_v1_service:
@@ -26,7 +22,8 @@
     namespace: '{{ namespace }}'
   register: keycloak_service_raw
 
-- set_fact:
+- name: Fetch Keycloak endpoint from service
+  set_fact:
     keycloak_uri: 'http://{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'
 
 - name: Check that the keycloak webpage is accessible
@@ -37,12 +34,17 @@
   register: webpage
   retries: 10
   delay: 20
-  failed_when:
-    - webpage.status != 200
-    - '"Welcome to Keycloak" not in webpage.content'
   until:
     - '"Welcome to Keycloak" in webpage.content'
     - webpage.status == 200
+
+- name: "Check Keycloak is ready"
+  asb_save_test_result:
+    fail: true
+    msg: "Keycloak doesn't seem to be ready"
+  when:
+    - webpage.status != 200
+    - '"Welcome to Keycloak" not in webpage.content'
 
 - name: Generate keycloak auth token
   uri:
@@ -52,10 +54,11 @@
     validate_certs: no
   register: keycloak_auth_response
   until: keycloak_auth_response.status == 200
-  retries: 600
+  retries: 100
   delay: 2
 
-- set_fact:
+- name: Set keycloak access token
+  set_fact:
     auth_token: '{{ keycloak_auth_response.json.access_token }}'
 
 - name: "Check {{ namespace }} realm"
@@ -67,5 +70,9 @@
       Authorization: "bearer {{ auth_token }}"
     status_code: 200
   register: realm_response
-  failed:
-    - realm_response.status != 200
+
+- name: "Check Keycloak Realm {{ namespace }} has been provisioned"
+  asb_save_test_result:
+    fail: true
+    msg: "Keycloak realm {{ namespace }} doesn't exist"
+  when: realm_response.status != 200

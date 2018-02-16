@@ -7,19 +7,19 @@
     validate_certs: no
   register: keycloak_auth_response
   until: keycloak_auth_response.status == 200
-  retries: 600
+  retries: 100
   delay: 2
 
 - name: Generate namespace specific realm
   template:
     src: namespace_realm.json.j2
-    dest: /tmp/namespace_realm.json
+    dest: /tmp/keycloak/namespace_realm.json
 
 - name: "Create {{ namespace }} realm"
   uri:
     url: "{{ keycloak_uri }}/auth/admin/realms"
     method: POST
-    body: "{{ lookup('file','/tmp/namespace_realm.json') }}"
+    body: "{{ lookup('file','/tmp/keycloak/namespace_realm.json') }}"
     validate_certs: no
     body_format: json
     headers:
