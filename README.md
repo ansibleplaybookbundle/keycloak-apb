@@ -106,4 +106,17 @@ With this, the secret can be added to an application as environment variables or
 
 ## Testing
 
+An example application can be deployed as follows:
+```
+$ oc new-app https://raw.githubusercontent.com/ruromero/quickstarts/master/springboot-keycloak/springboot-keycloak-template.yaml
+```
+
+Once deployed, it won't become ready as the readinessProbe will fail. It will be required to create the binding providing the redirect uri and service name.
+
+E.g. `http://springboot-myproject.example.com/*` and `springboot`
+
+Finally, after the secret is created, you will be able to _Add to application_ as environment variables. This change triggers a new deployment and it will be possible to navigate to `/` for the public URL and to `/private` where the authentication page is prompted.
+
+For more information about the test application check [springboot-keycloak quickstart](https://github.com/ruromero/quickstarts/tree/master/springboot-keycloak)
+
 For more information about testing of APBs, check [ansible-playbook-bundle documentation](https://github.com/ansibleplaybookbundle/ansible-playbook-bundle/blob/master/docs/getting_started.md#test).
