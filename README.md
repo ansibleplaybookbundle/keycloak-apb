@@ -27,6 +27,7 @@ Allows you to deploy a Keycloak server with a pre-provisioned Realm with the nam
 
 * **admin_username**: Name of the username that will have the administrator role in Keycloak
 * **admin_password**: Password to authenticate the administrator user
+* **keycloak_uri**: URL accessible from the browser where the client application should redirect users for authentication. This URL should also be accessible from the application pod as will be used to validate the token and do the initial provisioning.
 
 **Persistent**
 
@@ -34,6 +35,7 @@ Allows you to deploy a Keycloak server with a pre-provisioned Realm with the nam
 
 * **admin_username**: Name of the username that will have the administrator role in Keycloak
 * **admin_password**: Password to authenticate the administrator user
+* **keycloak_uri**: URL accessible from the browser where the client application should redirect users for authentication. This URL should also be accessible from the application pod as will be used to validate the token and do the initial provisioning.
 * **pvc_size**: Size of the Persistent Volume Claim that will be created
 
 **External**
@@ -42,8 +44,7 @@ An existing instance of Keycloak can be used for authentication/authorization. T
 
 * **admin_username**: Name of the username that will have the administrator role in Keycloak
 * **admin_password**: Password to authenticate the administrator user
-* **external_keycloak_uri**: URL accessible from the browser where the client application should redirect users for authentication.
-* **internal_keycloak_uri**: URL accessible from within the `apb` pod. If the `external_keycloak_uri` is the same, this field can be left empty. For example, if Keycloak is deployed in a different namespace (an this namespace is visible from the `apb` pod), the URL would look like: `http://<service>.<namespace>.svc.cluster.local`
+* **keycloak_uri**: URL accessible from the browser where the client application should redirect users for authentication. This URL should also be accessible from the application pod as will be used to validate the token and do the initial provisioning.
 
 ### Bind an application
 
@@ -56,7 +57,7 @@ In order to create a binding, the following variables must be provided:
 
 After the binding is created, the following variables are defined:
 
-* **SSO_URL**: Public url of Keycloak
+* **SSO_URL**: Keycloak URL
 * **SSO_REALM**: Name of the realm within Keycloak. i.e. the `namespace`
 * **SSO_CLIENT**: Name of the client provisioned. i.e. `namespace-application_name`
 

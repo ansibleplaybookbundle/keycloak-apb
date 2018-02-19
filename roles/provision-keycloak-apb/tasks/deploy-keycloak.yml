@@ -39,7 +39,6 @@
     - name: web
       port: 80
       target_port: 8080
-  register: keycloak_service_raw
 
 - name: Create keycloak https route
   openshift_v1_route:
@@ -52,7 +51,9 @@
     tls_insecure_edge_termination_policy: Redirect
     to_name: '{{ application_name }}'
     spec_port_target_port: web
+  register: keycloak_route_raw
 
-- name: "Set keycloak uri from service"
+- name: Set keycloak uri from route
   set_fact:
-    internal_keycloak_uri: 'http://{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'
+    keycloak_uri: 'https://{{ keycloak_route_raw.route.spec.host }}'
+  when: keycloak_uri is not defined
