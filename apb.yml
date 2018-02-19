@@ -30,7 +30,7 @@ plans:
       type: string
       display_type: password
       title: Keycloak admin password
-    - name: keycloak_uri
+    - name: apb_keycloak_uri
       required: False
       type: string
       title: Keycloak URL
@@ -60,7 +60,7 @@ plans:
       type: string
       display_type: password
       title: Keycloak admin password
-    - name: keycloak_uri
+    - name: apb_keycloak_uri
       required: False
       type: string
       title: Keycloak URL
@@ -96,7 +96,7 @@ plans:
       type: string
       display_type: password
       title: Keycloak admin password
-    - name: keycloak_uri
+    - name: apb_keycloak_uri
       required: True
       type: string
       title: Keycloak URL

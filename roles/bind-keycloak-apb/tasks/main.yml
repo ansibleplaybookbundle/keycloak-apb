@@ -25,4 +25,4 @@
     fields:
       SSO_REALM: "{{ namespace }}"
       SSO_CLIENT: "{{ namespace }}-{{ service_name }}"
-      SSO_URL: "{{ _apb_provision_creds.external_keycloak_uri }}/auth"
+      SSO_URL: "{{ _apb_provision_creds.keycloak_uri }}/auth"

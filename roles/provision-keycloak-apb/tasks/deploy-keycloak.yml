@@ -12,19 +12,6 @@
     state: present
     src: "{{ is.dest | default(is.path) }}"
 
-- name: Process DeploymentConfig from template
-  template:
-    src: keycloak-dc.yml.j2
-    dest: "/tmp/keycloak/keycloak-dc.yml"
-  register: dc
-
-- name: Create DeploymentConfig
-  openshift_v1_deployment_config:
-    name: "{{ application_name }}"
-    namespace: "{{ namespace}}"
-    state: present
-    src: "{{ dc.dest | default(dc.path) }}"
-
 - name: Create keycloak service
   k8s_v1_service:
     name: '{{ application_name }}'
@@ -51,9 +38,31 @@
     tls_insecure_edge_termination_policy: Redirect
     to_name: '{{ application_name }}'
     spec_port_target_port: web
-  register: keycloak_route_raw
+  when: apb_keycloak_uri is not defined
 
-- name: Set keycloak uri from route
-  set_fact:
-    keycloak_uri: 'https://{{ keycloak_route_raw.route.spec.host }}'
-  when: keycloak_uri is not defined
+- name: Create keycloak https route
+  openshift_v1_route:
+    name: '{{ application_name }}'
+    namespace: '{{ namespace }}'
+    labels:
+      app: '{{ application_name }}'
+      service: '{{ application_name }}'
+    tls_termination: edge
+    tls_insecure_edge_termination_policy: Redirect
+    to_name: '{{ application_name }}'
+    spec_port_target_port: web
+    spec_host: '{{ apb_keycloak_uri | regex_replace("http(s)?://", "")}}'
+  when: apb_keycloak_uri is defined
+
+- name: Process DeploymentConfig from template
+  template:
+    src: keycloak-dc.yml.j2
+    dest: "/tmp/keycloak/keycloak-dc.yml"
+  register: dc
+
+- name: Create DeploymentConfig
+  openshift_v1_deployment_config:
+    name: "{{ application_name }}"
+    namespace: "{{ namespace}}"
+    state: present
+    src: "{{ dc.dest | default(dc.path) }}"

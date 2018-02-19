@@ -12,5 +12,15 @@
   include_tasks: deploy-keycloak.yml
   when: _apb_plan_id != 'external'
 
+- name: "[KEYCLOAK] Set Keycloak URI when not defined"
+  include_role:
+    name: set-keycloak-uri
+  when: apb_keycloak_uri is not defined
+
+- name: "[KEYCLOAK] Set Keycloak URI from user defined variable"
+  set_fact:
+    keycloak_uri: "{{ apb_keycloak_uri }}"
+  when: apb_keycloak_uri is defined
+
 - name: "[KEYCLOAK] Provision"
   include_tasks: provision-keycloak.yml

@@ -24,11 +24,11 @@
 
 - name: Fetch Keycloak endpoint from service
   set_fact:
-    keycloak_uri: 'http://{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'
+    test_keycloak_uri: 'http://{{ keycloak_service_raw.service.spec.cluster_ip }}:{{ keycloak_service_raw.service.spec.ports[0].port}}'
 
 - name: Check that the keycloak webpage is accessible
   uri:
-    url: "{{ keycloak_uri }}/auth/"
+    url: "{{ test_keycloak_uri }}/auth/"
     return_content: yes
     validate_certs: no
   register: webpage
@@ -48,7 +48,7 @@
 
 - name: Generate keycloak auth token
   uri:
-    url: "{{ keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
+    url: "{{ test_keycloak_uri }}/auth/realms/master/protocol/openid-connect/token"
     method: POST
     body: "client_id=admin-cli&username={{ admin_username }}&password={{ admin_password }}&grant_type=password"
     validate_certs: no
@@ -63,7 +63,7 @@
 
 - name: "Check {{ namespace }} realm"
   uri:
-    url: "{{ keycloak_uri }}/auth/admin/realms/{{ namespace }}"
+    url: "{{ test_keycloak_uri }}/auth/admin/realms/{{ namespace }}"
     method: GET
     validate_certs: no
     headers:
