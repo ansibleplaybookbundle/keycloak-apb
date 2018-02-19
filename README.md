@@ -21,30 +21,71 @@ In the Openshift control panel, find and select the `Keycloak (APB)` and fill in
 
 ### Plans
 
-**Ephemeral**
-
-Allows you to deploy a Keycloak server with a pre-provisioned Realm with the name of the `namespace`. No persistence is configured, therefore once the application is restarted, all the provisioned data will be lost. **Not suitable for production**
+**Common configuration**
 
 * **admin_username**: Name of the username that will have the administrator role in Keycloak
 * **admin_password**: Password to authenticate the administrator user
-* **keycloak_uri**: URL accessible from the browser where the client application should redirect users for authentication. This URL should also be accessible from the application pod as will be used to validate the token and do the initial provisioning.
+* **keycloak_uri**: URL accessible from the browser where the client application should redirect users for authentication. This URL should also be reachable from the application pod as it will be used to validate the token.
+* **keycloak_users**: Pre-provisioned users and role bindings
+* **keycloak_roles**: Pre-provisioned roles
+
+**Ephemeral**
+
+Allows you to deploy a Keycloak server with a pre-provisioned Realm with the name of the `namespace`. No persistence is configured, therefore once the application is restarted, all the provisioned data will be lost. **Not suitable for production**
 
 **Persistent**
 
 Allows you to deploy a Keycloak server with a pre-provisioned Realm with the name of the `namespace`. A **Postgresql** instance will also be deployed and configured so that configuration is not lost upon restarts.
 
-* **admin_username**: Name of the username that will have the administrator role in Keycloak
-* **admin_password**: Password to authenticate the administrator user
-* **keycloak_uri**: URL accessible from the browser where the client application should redirect users for authentication. This URL should also be accessible from the application pod as will be used to validate the token and do the initial provisioning.
+Additional variable:
+
 * **pvc_size**: Size of the Persistent Volume Claim that will be created
 
 **External**
 
 An existing instance of Keycloak can be used for authentication/authorization. This plan will create the Realm during provisioning so that future bindings can create the *clients*.
 
-* **admin_username**: Name of the username that will have the administrator role in Keycloak
-* **admin_password**: Password to authenticate the administrator user
-* **keycloak_uri**: URL accessible from the browser where the client application should redirect users for authentication. This URL should also be accessible from the application pod as will be used to validate the token and do the initial provisioning.
+### Pre-provision users and roles
+
+Users example:
+```
+  {
+      "username" : "kermit",
+      "enabled": true,
+      "email" : "kermit@example",
+      "firstName": "Kermit",
+      "lastName": "The Frog",
+      "credentials" : [
+          { "type" : "password",
+            "value" : "piggy" }
+      ],
+      "realmRoles": [ "user", "admin" ]
+  },
+  {
+      "username" : "gonzo",
+      "enabled": true,
+      "email" : "gonzo@example",
+      "firstName": "Gonzo",
+      "lastName": "The Great",
+      "credentials" : [
+          { "type" : "password",
+            "value" : "camilla" }
+      ],
+      "realmRoles": [ "user" ]
+  }
+```
+
+Roles example:
+```
+ {
+    "name": "user",
+    "description": "User privileges"
+  },
+  {
+    "name": "admin",
+    "description": "Administrator privileges"
+  }
+```
 
 ### Bind an application
 

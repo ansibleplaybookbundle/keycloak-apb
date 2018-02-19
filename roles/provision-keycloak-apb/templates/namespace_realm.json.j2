@@ -5,5 +5,13 @@
   "eventsEnabled": true,
   "eventsExpiration": 7200,
   "displayName": "{{ project_name }}",
-  "eventsListeners": ["jboss-logging"]
+  "eventsListeners": ["jboss-logging"],
+  "users": [
+    {{ keycloak_users }}
+  ],
+  "roles": {
+    "realm": [
+      {{ keycloak_roles }}
+    ]
+  }
 }
