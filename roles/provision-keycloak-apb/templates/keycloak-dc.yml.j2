@@ -72,6 +72,6 @@ spec:
       - keycloak
       from:
         kind: ImageStreamTag
-        name: {{ application_name }}:{{ keycloak_image_tag }}
-        namespace: {{ namespace }}
+        name: {{ keycloak_image_name }}:{{ keycloak_image_tag }}
+        namespace: openshift
     type: ImageChange

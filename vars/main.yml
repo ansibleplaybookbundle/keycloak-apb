@@ -1,4 +1,4 @@
 ---
 # Global constants
-application_name: keycloak
+application_name: rhsso
 postgres_name: postgres
