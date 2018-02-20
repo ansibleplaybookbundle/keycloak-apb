@@ -1,24 +1,25 @@
 version: 1.0
-name: keycloak-apb
-description: Keycloak - Open Source Identity and Access Management
+name: rhsso-apb
+description: Single Sign-On - Open Source Identity and Access Management
 bindable: True
 async: optional
 tags:
   - sso
   - keycloak
+  - rhsso
 metadata:
-  displayName: Keycloak (APB)
+  displayName: Single Sign-On (APB)
   imageUrl: "https://pbs.twimg.com/profile_images/702119821979344897/oAC05cEB_400x400.png"
-  documentationUrl: "http://www.keycloak.org/documentation.html"
+  documentationUrl: "https://access.redhat.com/documentation/en/red-hat-single-sign-on/"
   providerDisplayName: "Red Hat, Inc."
   dependencies: ['Postgresql:9.5']
-  serviceName: keycloak
+  serviceName: rhsso
 plans:
   - name: ephemeral
-    description: Deploy keycloak without persistence
+    description: Deploy Single Sign-On without persistence
     free: True
     metadata:
-      displayName: Keycloak ephemeral
+      displayName: Single Sign-On ephemeral
     parameters:
     - name: admin_username
       required: True
@@ -56,11 +57,11 @@ plans:
       description: Valid Redirect URIs a browser can redirect to after a successful login/logout. Simple wildcards are allowed. e.g. https://myservice-myproject.apps.example.com/*
       type: string
   - name: persistent
-    description: Deploy keycloak with persistence
+    description: Deploy Single Sign-On with persistence
     free: True
     default: True
     metadata:
-      displayName: Keycloak persistent
+      displayName: Single Sign-On persistent
     parameters:
     - name: admin_username
       required: True
@@ -108,7 +109,7 @@ plans:
     description: Allows authenticating applications to an external Keycloak instance
     free: True
     metadata:
-      displayName: Keycloak (external)
+      displayName: Single Sign-On (external)
     parameters:
     - name: admin_username
       required: True
