@@ -27,7 +27,7 @@
   ignore_errors: true
   retries: 5
   delay: 5
-  until: 
+  until:
     - webpage.status == 200
     - '"Welcome to" in webpage.content'
 
@@ -51,12 +51,13 @@
     ignore_errors: true
     retries: 5
     delay: 5
-    until: 
+    until:
       - webpage_svc.status == 200
-      - '"Welcome to" in webpage.content'
+      - '"Welcome to" in webpage_svc.content'
 
   - name: "Check if keycloak uri has been set and verified"
     fail:
       msg: "Unable to retrieve a valid keycloak uri"
     when: webpage_svc.status != 200 OR 'not "Welcome to" in webpage_svc.content'
+    
   when: webpage.status != 200
