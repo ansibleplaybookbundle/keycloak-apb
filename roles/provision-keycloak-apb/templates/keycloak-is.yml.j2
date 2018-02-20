@@ -12,4 +12,4 @@ spec:
   - name: {{ keycloak_image_tag }}
     from:
       kind: DockerImage
-      name: docker.io/jboss/keycloak-openshift:{{ keycloak_image_tag }}
+      name: {{ keycloak_image_name }}:{{ keycloak_image_tag }}

@@ -25,6 +25,11 @@
     validate_certs: no
   register: webpage
   ignore_errors: true
+  retries: 5
+  delay: 5
+  until:
+    - webpage.status == 200
+    - '"Welcome to" in webpage.content'
 
 - block:
   - name: Get keycloak service
@@ -42,16 +47,18 @@
       url: "{{ keycloak_uri }}/auth/"
       return_content: yes
       validate_certs: no
-    register: webpage
+    register: webpage_svc
     ignore_errors: true
+    retries: 5
+    delay: 5
+    until:
+      - webpage_svc.status == 200
+      - '"Welcome to" in webpage_svc.content'
 
+  - name: Check if keycloak_uri has been set and verified
+    fail:
+      msg: Unable to retrieve a valid keycloak_uri
+    when: webpage_svc.status != 200 OR 'not "Welcome to" in webpage_svc.content'
   when:
-    - "Welcome to Keycloak" not in webpage.content
-    - webpage.status != 200
-
-- name: Check if keycloak_uri has been set and verified
-  fail:
-    msg: Unable to retrieve a valid keycloak_uri
-  when:
-    - "Welcome to Keycloak" not in webpage.content
+    - 'not "Welcome to" in webpage.content'
     - webpage.status != 200

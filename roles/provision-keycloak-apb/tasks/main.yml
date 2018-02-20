@@ -15,12 +15,14 @@
 - name: "[KEYCLOAK] Set Keycloak URI when not defined"
   include_role:
     name: set-keycloak-uri
-  when: apb_keycloak_uri is not defined
+  when: (not apb_keycloak_uri is defined) OR (apb_keycloak_uri == "")
 
 - name: "[KEYCLOAK] Set Keycloak URI from user defined variable"
   set_fact:
     keycloak_uri: "{{ apb_keycloak_uri }}"
-  when: apb_keycloak_uri is defined
+  when:
+    - apb_keycloak_uri is defined
+    - apb_keycloak_uri != ""
 
 - name: "[KEYCLOAK] Provision"
   include_tasks: provision-keycloak.yml
