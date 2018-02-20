@@ -1,17 +1,4 @@
 ---
-- name: Process ImageStream from template
-  template:
-    src: keycloak-is.yml.j2
-    dest: "/tmp/keycloak/keycloak-is.yml"
-  register: is
-
-- name: Create ImageStream
-  openshift_v1_image_stream:
-    name: "{{ application_name }}"
-    namespace: "{{ namespace }}"
-    state: present
-    src: "{{ is.dest | default(is.path) }}"
-
 - name: Create keycloak service
   k8s_v1_service:
     name: '{{ application_name }}'

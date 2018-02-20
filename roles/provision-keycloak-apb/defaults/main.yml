@@ -3,7 +3,7 @@ playbook_debug: no
 
 # Non global constants
 keycloak_image_name: redhat-sso71-openshift
-keycloak_image_tag: 1.3
+keycloak_image_tag: 1.2
 postgres_image: postgresql-95-rhel7
 postgres_image_tag: '9.5'
 database_name: '{{ namespace }}'
