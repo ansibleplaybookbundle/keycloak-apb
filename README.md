@@ -93,8 +93,14 @@ After provisioning Keycloak and deploying an application `bindings` shall be cre
 
 In order to create a binding, the following variables must be provided:
 
-* **service_name**: Name of the service that will be created in order to include it in the auth redirection.
-* **redirect_uris**: URL to which redirect upon authentication.
+* Provision variables: Used to create the client in Keycloak
+  * **service_name**: Name of the service that will be created in order to include it in the auth redirection.
+  * **redirect_uris**: URL to which redirect upon authentication.
+  * **web_origins**: Allowed CORS origins. To permit all origins of Valid Redirect URIs add '+'. To permit all origins add '*'.
+* Binding varaibles: Used to create the secret that will be bound to the application
+  * sso_url_name: Name of the variable that will be used to refer to the Keycloak endpoint
+  * sso_realm_name: Name of the variable that will be used to refer to the Keycloak realm
+  * sso_client_name: Name of the variable that will be used to refer to the Keycloak client
 
 After the binding is created, the following variables are defined:
 
