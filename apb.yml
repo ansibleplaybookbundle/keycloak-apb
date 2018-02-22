@@ -49,11 +49,17 @@ plans:
       description: JSON defining the roles to add to the realm
     bind_parameters:
     - name: service_name
+      required: True
       title: Name of the service to bind
       type: string
     - name: redirect_uris
+      required: True
       title: Redirect URIs
       description: Valid Redirect URIs a browser can redirect to after a successful login/logout. Simple wildcards are allowed. e.g. https://myservice-myproject.apps.example.com/*
+      type: string
+    - name: web_origins
+      title: Web Origins
+      description: Web Origins to allow CORS
       type: string
   - name: persistent
     description: Deploy keycloak with persistence
@@ -104,6 +110,10 @@ plans:
       title: Redirect URIs
       description: Valid Redirect URIs a browser can redirect to after a successful login/logout. Simple wildcards are allowed. e.g. https://myservice-myproject.apps.example.com/*
       type: string
+    - name: web_origins
+      title: Web Origins
+      description: Web Origins to allow CORS
+      type: string
   - name: external
     description: Allows authenticating applications to an external Keycloak instance
     free: True
@@ -141,7 +151,13 @@ plans:
     - name: service_name
       title: Name of the service to bind
       type: string
+      required: True
     - name: redirect_uris
       title: Redirect URIs
       description: Valid Redirect URIs a browser can redirect to after a successful login/logout. Simple wildcards are allowed. e.g. https://myservice-myproject.apps.example.com/*
+      type: string
+      required: True
+    - name: web_origins
+      title: Web Origins
+      description: Web Origins to allow CORS
       type: string

@@ -13,7 +13,7 @@
   uri:
     url: "{{ _apb_provision_creds.keycloak_uri }}/auth/admin/realms/{{ namespace }}/clients"
     method: POST
-    body: "{\"id\": \"{{ namespace }}-{{ service_name }}\", \"redirectUris\": [\"{{ redirect_uris }}\"], \"publicClient\": true }"
+    body: "{\"id\": \"{{ namespace }}-{{ service_name }}\", \"redirectUris\": [\"{{ redirect_uris }}\"], \"webOrigins\": [\"{{ web_origins | default('') }}\"], \"publicClient\": true }"
     validate_certs: no
     body_format: json
     headers:
