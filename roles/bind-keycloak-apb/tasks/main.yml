@@ -13,7 +13,7 @@
   uri:
     url: "{{ _apb_provision_creds.keycloak_uri }}/auth/admin/realms/{{ namespace }}/clients"
     method: POST
-    body: "{\"id\": \"{{ namespace }}-{{ service_name }}\", \"redirectUris\": [\"{{ redirect_uris }}\"], \"publicClient\": true }"
+    body: "{\"id\": \"{{ namespace }}-{{ service_name }}\", \"redirectUris\": [\"{{ redirect_uris }}\"], \"webOrigins\": [\"{{ web_origins | default('') }}\"], \"publicClient\": true }"
     validate_certs: no
     body_format: json
     headers:
@@ -22,7 +22,4 @@
 
 - name: Encode {{ service_name }} credentials
   asb_encode_binding:
-    fields:
-      SSO_REALM: "{{ namespace }}"
-      SSO_CLIENT: "{{ namespace }}-{{ service_name }}"
-      SSO_URL: "{{ _apb_provision_creds.keycloak_uri }}/auth"
+    fields: "{{ lookup('template', 'encode_binding.yml.j2') | from_yaml }}"

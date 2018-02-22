@@ -7,11 +7,11 @@
   "displayName": "{{ project_name }}",
   "eventsListeners": ["jboss-logging"],
   "users": [
-    {{ keycloak_users }}
+    {{ keycloak_users | default('') }}
   ],
   "roles": {
     "realm": [
-      {{ keycloak_roles }}
+      {{ keycloak_roles | default('') }}
     ]
   }
 }
