@@ -22,7 +22,4 @@
 
 - name: Encode {{ service_name }} credentials
   asb_encode_binding:
-    fields:
-      SSO_REALM: "{{ namespace }}"
-      SSO_CLIENT: "{{ namespace }}-{{ service_name }}"
-      SSO_URL: "{{ _apb_provision_creds.keycloak_uri }}/auth"
+    fields: "{{ lookup('template', 'encode_binding.yml.j2') | from_yaml }}"
