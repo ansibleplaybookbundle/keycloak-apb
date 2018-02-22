@@ -20,7 +20,7 @@
 - name: "[KEYCLOAK] Set Keycloak URI from user defined variable"
   set_fact:
     keycloak_uri: "{{ apb_keycloak_uri }}"
-  when: 
+  when:
     - apb_keycloak_uri is defined
     - apb_keycloak_uri != ""
 

@@ -29,7 +29,7 @@
   delay: 5
   until:
     - webpage.status == 200
-    - "Welcome to" in webpage.content
+    - '"Welcome to" in webpage.content'
 
 - block:
   - name: Get keycloak service
@@ -53,7 +53,7 @@
     delay: 5
     until:
       - webpage_svc.status == 200
-      - "Welcome to" in webpage_svc.content
+      - '"Welcome to" in webpage_svc.content'
 
   - name: Check if keycloak_uri has been set and verified
     fail:
