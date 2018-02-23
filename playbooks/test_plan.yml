@@ -27,7 +27,7 @@
 
 - name: "[TESTS][{{ plan_id | upper }}] Remove binding secret."
   k8s_v1_secret:
-    name: "{{ lookup('env', 'HOSTNAME') }}"
+    name: "{{ lookup('env', 'POD_NAME') }}"
     namespace: '{{ namespace }}'
     state: absent
 
