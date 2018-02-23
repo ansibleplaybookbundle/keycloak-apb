@@ -4,7 +4,7 @@
   gather_facts: false
   connection: local
   vars_files:
-  - /opt/ansible/vars/main.yml
+  - vars/common.yml
   roles:
   - role: ansible.kubernetes-modules
     install_python_requirements: no
@@ -25,3 +25,4 @@
     - name: "[TEST][ALL] Success"
       asb_save_test_result:
         msg: 'All tests passed!'
+      when: travis is undefined

@@ -15,6 +15,7 @@
   when:
     - _apb_plan_id == 'persistent'
     - postgres_dc.deployment_config.status.available_replicas == 0
+    - travis is undefined
 
 - name: "Retrieve Service to keycloak"
   k8s_v1_service:
@@ -45,6 +46,7 @@
   when:
     - webpage.status != 200
     - '"Welcome to Keycloak" not in webpage.content'
+    - travis is undefined
 
 - name: Generate keycloak auth token
   uri:
@@ -75,4 +77,6 @@
   asb_save_test_result:
     fail: true
     msg: "Keycloak realm {{ namespace }} doesn't exist"
-  when: realm_response.status != 200
+  when:
+    - realm_response.status != 200
+    - travis is undefined

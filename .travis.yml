@@ -1,0 +1,61 @@
+---
+sudo: required
+sevices:
+  - docker
+
+language: python
+python:
+  - '2.7'
+
+stages:
+  - lint
+  - build
+  - test
+
+env:
+  - ANSIBLE_ROLES_PATH=$ANSIBLE_ROLES_PATH:$PWD/roles OPENSHIFT_VERSION=latest
+  - ANSIBLE_ROLES_PATH=$ANSIBLE_ROLES_PATH:$PWD/roles OPENSHIFT_VERSION=v3.9.0
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo sed -i "s/\DOCKER_OPTS=\"/DOCKER_OPTS=\"--insecure-registry=172.30.0.0\/16 /g" /etc/default/docker
+  - sudo cat /etc/default/docker
+  - sudo service docker restart
+
+install:
+  - sudo apt-get install git
+  - pip install --pre ansible apb yamllint
+  - ansible-galaxy install ansible.kubernetes-modules
+  - git clone https://github.com/ansibleplaybookbundle/ansible-asb-modules.git $PWD/roles/ansibleplaybookbundle.asb-modules
+
+jobs:
+  include:
+  - stage: lint
+    python: '2.7'
+    script:
+      # Verify all playbooks have valid syntax
+      - |
+        for PLAYBOOK in playbooks/{provision,deprovision,bind,unbind,test}.yml
+        do ansible-playbook $PLAYBOOK --syntax-check
+        done
+  - stage: lint
+    python: '2.7'
+    script:
+      # Verify apb.yml file is valid YAML
+      - yamllint apb.yml
+  - stage: lint
+    python: '2.7'
+    script:
+      # Check if committed APB spec matches Dockerfile
+      - apb build
+      - if ! git diff --exit-code; then echo "Committed APB spec differs from built apb.yml spec"; exit 1; fi
+
+# Test Stage
+script:
+  - export APB_NAME=keycloak-apb
+  - apb build
+  - sudo docker cp $(docker create docker.io/openshift/origin:$OPENSHIFT_VERSION):/bin/oc /usr/local/bin/oc
+  - oc cluster up --version=$OPENSHIFT_VERSION
+  - oc login -u system:admin
+  - oc new-project $APB_NAME
+  - docker run --rm --net=host -e "POD_NAME=$APB_NAME-pod" -e "POD_NAMESPACE=$APB_NAME" -v $HOME/.kube:/opt/apb/.kube:z -u $UID $APB_NAME test --extra-vars "travis=true namespace=$APB_NAME"
