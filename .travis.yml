@@ -8,8 +8,7 @@ python:
   - '2.7'
 
 stages:
-  - lint
-  - build
+  - syntax and format
   - test
 
 env:
@@ -30,30 +29,25 @@ install:
 
 jobs:
   include:
-  - stage: lint
-    python: '2.7'
+  - stage: syntax and format
     script:
       # Verify all playbooks have valid syntax
       - |
         for PLAYBOOK in playbooks/{provision,deprovision,bind,unbind,test}.yml
         do ansible-playbook $PLAYBOOK --syntax-check
         done
-  - stage: lint
-    python: '2.7'
+  - stage: syntax and format
     script:
       # Verify apb.yml file is valid YAML
       - yamllint apb.yml
-  - stage: lint
-    python: '2.7'
-    script:
-      # Check if committed APB spec matches Dockerfile
-      - apb build
-      - if ! git diff --exit-code; then echo "Committed APB spec differs from built apb.yml spec"; exit 1; fi
 
 # Test Stage
 script:
   - export APB_NAME=keycloak-apb
   - apb build
+  - export B64_SPEC=`base64 apb.yml | tr -d '\n'`
+  - export APB_LABEL=`docker inspect --format='{{json .Config.Labels}}' $(docker images -q | head -n 1) | jq -r '."com.redhat.apb.spec"'`
+  - if [ "$B64_SPEC" != "$APB_LABEL" ]; then { echo "APB Spec Label doesn't match"; exit -1; }; fi;
   - sudo docker cp $(docker create docker.io/openshift/origin:$OPENSHIFT_VERSION):/bin/oc /usr/local/bin/oc
   - oc cluster up --version=$OPENSHIFT_VERSION
   - oc login -u system:admin

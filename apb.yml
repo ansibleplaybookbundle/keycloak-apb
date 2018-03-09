@@ -46,10 +46,12 @@ tags:
   - keycloak
 metadata:
   displayName: Keycloak (APB)
-  imageUrl: "https://pbs.twimg.com/profile_images/702119821979344897/oAC05cEB_400x400.png"
+  imageUrl: "https://github.com/ansibleplaybookbundle/keycloak-apb/raw/master/docs/imgs/keycloak_ico.png"
   documentationUrl: "http://www.keycloak.org/documentation.html"
   providerDisplayName: "Red Hat, Inc."
-  dependencies: ['Postgresql:9.5']
+  dependencies:
+    - 'docker.io/jboss/keycloak-openshift:3.4.3.Final'
+    - 'centos/postgresql-95-centos7:9.5'
   serviceName: keycloak
 plans:
   - name: ephemeral
