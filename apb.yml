@@ -36,7 +36,7 @@ _bind_params: &_bind_params
     title: Keycloak Client Variable name
     description: How the application will refer to the Keycloak Client name
     type: string
-version: 1.0
+version: 1.0.0
 name: keycloak-apb
 description: Keycloak - Open Source Identity and Access Management
 bindable: True
